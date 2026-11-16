@@ -213,7 +213,7 @@ export default function AdminDashboard() {
       <div className="ad-side-bottom"><div className="ad-user"><span className="ad-avatar">{(session?.user?.email||"A").slice(0,1).toUpperCase()}</span><div><b>Administrator</b><small>{session?.user?.email}</small></div></div><button className="ad-logout" onClick={logout}>↗ Sign out</button><a href="/">← View storefront</a></div>
     </aside>
     <main className="ad-main">
-      <header className="ad-topbar"><div><div className="ad-kicker">ANIKKS / STORE MANAGEMENT</div><h1>{({overview:"Overview",products:"Product catalogue",orders:"Customer orders",inventory:"Inventory history"})[tab]}</h1></div><div className="ad-top-actions"><span className="ad-live"><i/> LIVE DATABASE</span><button onClick={refreshAll}>↻ Refresh</button><a href="/" target="_blank" rel="noreferrer">View store ↗</a></div></header>
+      <header className="ad-topbar"><div><div className="ad-kicker">ANIKKS / STORE MANAGEMENT</div><h1>{({overview:"Overview",products:"Product catalogue",orders:"Customer orders",inventory:"Inventory history"})[tab]}</h1></div><div className="ad-top-actions"><span className="ad-live"><i/> LIVE DATABASE</span><button onClick={refreshAll}>↻ Refresh</button><a href="/" target="_blank" rel="noreferrer">View store ↗</a><button className="ad-signout-top" onClick={logout} type="button" title="Sign out of administrator account">↗ Sign out</button></div></header>
       {tab==="overview"&&<section className="ad-content">
         <div className="ad-welcome"><div><span>YOUR BUSINESS AT A GLANCE</span><h2>Good morning,<br/><em>Administrator.</em></h2><p>Here is what is happening across your ANIKKS store.</p></div><div className="ad-welcome-art">A<span>✦</span></div></div>
         <div className="ad-metrics">
