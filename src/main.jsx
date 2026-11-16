@@ -122,9 +122,33 @@ function App() {
     const {data, error} = await supabase.auth.signInWithPassword({email:email.trim(), password});
     if (error) notify("Sign-in failed: " + error.message);
     else {
-      const ok = await checkAdmin(data.user);
+      let ok = await checkAdmin(data.user);
+      if (!ok && email.trim().toLowerCase() === "anuoluwapoakinwale755@gmail.com") {
+        const {error:claimError} = await supabase.rpc("claim_initial_admin");
+        if (!claimError) ok = await checkAdmin(data.user);
+        else notify("Administrator setup: " + claimError.message + ". Confirm your email first if you have just registered.");
+      }
       if (ok) { notify("Administrator access granted."); await loadOrders(); }
-      else { await supabase.auth.signOut(); notify("This account is not assigned the administrator role."); }
+      else { await supabase.auth.signOut(); }
+    }
+    setAdminLoading(false);
+  }
+
+  async function registerInitialAdmin() {
+    if (email.trim().toLowerCase() !== "anuoluwapoakinwale755@gmail.com") {
+      notify("Initial administrator registration is restricted to the authorised email address.");
+      return;
+    }
+    if (password.length < 8) { notify("Choose a password with at least 8 characters."); return; }
+    setAdminLoading(true);
+    const {data,error} = await supabase.auth.signUp({email:email.trim(),password});
+    if (error) notify("Registration failed: " + error.message);
+    else if (data.session) {
+      const {error:claimError} = await supabase.rpc("claim_initial_admin");
+      if (claimError) notify("Account created, but admin setup needs email confirmation: " + claimError.message);
+      else if (await checkAdmin(data.user)) { notify("Initial administrator account is ready."); await loadOrders(); }
+    } else {
+      notify("Check your email to confirm the account, then return here and sign in to finish administrator setup.");
     }
     setAdminLoading(false);
   }
@@ -234,7 +258,7 @@ function App() {
     </aside></div>}
 
     {adminOpen && <div className="drawer-backdrop admin-backdrop" onClick={()=>setAdminOpen(false)}><section className="admin-panel" onClick={e=>e.stopPropagation()}><div className="drawer-head"><div><small>ANIKKS · SECURE STORE TOOLS</small><h2>Store manager</h2></div><button onClick={()=>setAdminOpen(false)}>✕</button></div>
-      {!isAdmin ? <form className="admin-login" onSubmit={signIn}><p>Sign in with your authorised administrator account.</p><label>Email address<input type="email" autoComplete="username" required value={email} onChange={e=>setEmail(e.target.value)}/></label><label>Password<input type="password" autoComplete="current-password" required value={password} onChange={e=>setPassword(e.target.value)}/></label><button className="btn btn-orange" disabled={adminLoading}>{adminLoading?"Signing in…":"Secure administrator sign in"}</button><small>Access is granted only to accounts assigned the admin role in Supabase. If your account has not been invited and authorised yet, contact the project owner.</small></form> :
+      {!isAdmin ? <form className="admin-login" onSubmit={signIn}><p>Sign in with your authorised administrator account.</p><label>Email address<input type="email" autoComplete="username" required value={email} onChange={e=>setEmail(e.target.value)}/></label><label>Password<input type="password" autoComplete="current-password" required value={password} onChange={e=>setPassword(e.target.value)}/></label><button className="btn btn-orange" disabled={adminLoading}>{adminLoading?"Please wait…":"Secure administrator sign in"}</button><button className="back-link" type="button" disabled={adminLoading} onClick={registerInitialAdmin}>Set up the first administrator account</button><small>First-time setup is restricted to the authorised business email and requires email confirmation. Only the first administrator can claim this setup.</small></form> :
       <><div className="admin-stats"><div><small>ACTIVE PRODUCTS</small><strong>{products.length}</strong></div><div><small>RECENT ORDERS</small><strong>{orders.length}</strong></div><div><small>ORDER VALUE</small><strong>{money(orders.reduce((a,o)=>a+Number(o.total_ngn),0))}</strong></div></div>
       <div className="filters"><button className={tab==="products"?"active":""} onClick={()=>setTab("products")}>Products & stock</button><button className={tab==="orders"?"active":""} onClick={()=>{setTab("orders");loadOrders();}}>Orders</button><button onClick={signOut}>Sign out</button></div>
       {tab==="products" ? <>
