@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { createRoot } from "react-dom/client";
 import { supabase } from "./supabase";
 import "./admin-dashboard.css";
 
@@ -239,4 +238,3 @@ export default function AdminDashboard() {
   </div>;
 }
 
-if (window.location.pathname==="/admin" || window.location.pathname==="/admin/") createRoot(document.getElementById("root")).render(<AdminDashboard/>);
