@@ -77,3 +77,42 @@
 @keyframes lightboxZoom{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
 @media(max-width:650px){.product-lightbox{padding:16px}.product-lightbox-content{flex-direction:column;gap:14px;max-height:90vh}.product-lightbox-content>img{max-width:100%;max-height:66vh}.product-lightbox-caption{width:100%;max-width:none;min-width:0;display:grid;grid-template-columns:1fr auto;gap:6px 12px;align-items:center}.product-lightbox-caption span{grid-column:1/-1}.product-lightbox-caption strong{font-size:18px}.product-lightbox-caption b{grid-column:1;grid-row:3}.product-lightbox-caption .btn{grid-column:2;grid-row:2/4;white-space:nowrap}.product-lightbox-close{top:10px;right:10px;width:40px;height:40px}}
 @media(prefers-reduced-motion:reduce){.product-image-preview img,.image-zoom-hint,.product-lightbox,.product-lightbox-content>img{transition:none;animation:none}}
+
+
+/* Footer layout repair: balanced desktop grid and clean mobile stacking */
+.footer{
+  display:grid;
+  grid-template-columns:minmax(180px,1.2fr) minmax(150px,.8fr) minmax(250px,1.4fr);
+  grid-template-areas:"brand tagline socials" "copyright copyright admin";
+  align-items:center;
+  justify-items:start;
+  column-gap:28px;
+  row-gap:22px;
+  padding:34px clamp(20px,6vw,88px) 26px;
+  font-size:11px;
+}
+.footer>.brand-footer{grid-area:brand;min-width:0}
+.footer>span:nth-child(2){grid-area:tagline;line-height:1.5}
+.footer>.footer-contact-icons{grid-area:socials;justify-self:end;display:flex;align-items:center;justify-content:flex-end;gap:12px;min-width:0}
+.footer>span:nth-child(4){grid-area:copyright;align-self:end;color:#d9ddcb;line-height:1.5}
+.footer>.admin-link{grid-area:admin;justify-self:end;align-self:end;color:#f6a53e;text-decoration:none;font-weight:700;white-space:nowrap}
+.footer .brand-footer{display:inline-flex;align-items:center;gap:10px;text-decoration:none;white-space:nowrap}
+.footer .brand-footer>span:last-child{line-height:1.2}
+.footer .brand-footer small{display:block;margin-top:4px;letter-spacing:.16em;font-size:8px}
+.footer-contact-icons .footer-address{white-space:nowrap}
+.footer-contact-icons .social-symbol{width:36px;height:36px;flex-basis:36px}
+@media(max-width:900px){
+ .footer{grid-template-columns:1fr 1fr;grid-template-areas:"brand tagline" "socials socials" "copyright admin";column-gap:18px;row-gap:18px}
+ .footer>.footer-contact-icons{justify-self:start;justify-content:flex-start;flex-wrap:wrap}
+}
+@media(max-width:650px){
+ .footer{display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:16px;padding:30px 7% 24px}
+ .footer>.brand-footer{order:0}
+ .footer>span:nth-child(2){display:block;order:1;font-size:11px}
+ .footer>.footer-contact-icons{order:2;width:100%;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 8px;justify-content:start;align-items:center}
+ .footer-contact-icons>a{justify-content:flex-start}
+ .footer-contact-icons .social-symbol{width:36px;height:36px;flex-basis:36px}
+ .footer-contact-icons .footer-address{grid-column:1/-1;font-size:11px;white-space:normal}
+ .footer>span:nth-child(4){order:3;font-size:10px;line-height:1.5}
+ .footer>.admin-link{order:4;align-self:flex-start;font-size:10px;padding-top:4px}
+}
