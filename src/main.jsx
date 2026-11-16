@@ -8,7 +8,7 @@ const WA = "2349162259886";
 const PHONE = "+2348124705254";
 const money = n => "₦" + Number(n || 0).toLocaleString("en-NG");
 const categories = ["All", "Food", "Shades", "Perfumes"];
-const currentPath = window.location.pathname.replace(/\\/+$/, "") || "/";
+const currentPath = window.location.pathname.replace(/\/+$/, "") || "/";
 const currentPage = currentPath === "/" ? "home" : currentPath === "/shop" ? "shop" : currentPath.startsWith("/category/") ? "category" : currentPath.slice(1);
 const emptyForm = { name:"", category:"Food", price:"", stock:"", tag:"New arrival", description:"", image_path:"" };
 const heroSlides = [
