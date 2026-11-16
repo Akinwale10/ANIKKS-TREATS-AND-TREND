@@ -193,11 +193,9 @@ function App() {
     if (!Number.isFinite(quantity) || quantity === 0) { notify("Enter a non-zero stock adjustment."); return; }
     const next = product.stock + quantity;
     if (next < 0) { notify("Stock cannot be negative."); return; }
-    const {error} = await supabase.from("products").update({stock:next,updated_at:new Date().toISOString()}).eq("id",product.id);
+    const {error} = await supabase.rpc("adjust_stock", {p_product_id:product.id, p_quantity_change:quantity, p_reason:"Manual admin stock adjustment"});
     if (error) { notify("Stock update failed: " + error.message); return; }
-    const {error:movementError} = await supabase.from("inventory_movements").insert({product_id:product.id,quantity_change:quantity,reason:"Manual admin stock adjustment",actor_id:session.user.id});
-    if (movementError) notify("Stock updated but movement log failed: " + movementError.message);
-    else notify("Stock updated and recorded.");
+    notify("Stock updated and recorded atomically.");
     setStockAdjust(old => ({...old,[product.id]:""}));
     await loadProducts();
   }
