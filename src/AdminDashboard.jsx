@@ -205,7 +205,7 @@ export default function AdminDashboard() {
       setBusy(false);
       return;
     }
-    if (product.image_path && !/^https?:\\/\\//i.test(product.image_path)) {
+    if (product.image_path && !product.image_path.startsWith("http://") && !product.image_path.startsWith("https://")) {
       const {error:imageError} = await supabase.storage.from("product-images").remove([product.image_path]);
       if (imageError) toast("Product deleted, but its image could not be removed from storage.");
       else toast("Product deleted successfully.");
