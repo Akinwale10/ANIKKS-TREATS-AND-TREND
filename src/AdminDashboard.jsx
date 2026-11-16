@@ -3,6 +3,7 @@ import { supabase } from "./supabase";
 import "./admin-dashboard.css";
 
 const OWNER_EMAIL = "anuoluwapoakinwale755@gmail.com";
+const IDLE_TIMEOUT_MS = 5 * 60 * 1000;
 const money = value => "₦" + Number(value || 0).toLocaleString("en-NG");
 const imageUrl = path => !path ? "" : /^https?:\/\//i.test(path) ? path : supabase.storage.from("product-images").getPublicUrl(path).data.publicUrl;
 const blank = {name:"",category:"Food",price:"",stock:"",tag:"New arrival",description:"",image_path:""};
@@ -84,6 +85,32 @@ export default function AdminDashboard() {
     });
     return () => { alive=false; listener.subscription.unsubscribe(); };
   },[verifyAdmin,refreshAll]);
+
+  useEffect(() => {
+    if (!authorized || !session) return;
+    let idleTimer;
+    let loggingOut = false;
+    const signOutForInactivity = async () => {
+      if (loggingOut) return;
+      loggingOut = true;
+      await supabase.auth.signOut();
+      setAuthorized(false);
+      setSession(null);
+      setPassword("");
+      toast("You were signed out after 5 minutes of inactivity.");
+    };
+    const resetIdleTimer = () => {
+      window.clearTimeout(idleTimer);
+      idleTimer = window.setTimeout(signOutForInactivity, IDLE_TIMEOUT_MS);
+    };
+    const activityEvents = ["pointerdown","pointermove","keydown","touchstart","wheel","scroll"];
+    activityEvents.forEach(eventName => window.addEventListener(eventName, resetIdleTimer, {passive:true}));
+    resetIdleTimer();
+    return () => {
+      window.clearTimeout(idleTimer);
+      activityEvents.forEach(eventName => window.removeEventListener(eventName, resetIdleTimer));
+    };
+  }, [authorized, session]);
 
   const activeProducts = products.filter(p=>p.is_active);
   const totalStock = activeProducts.reduce((sum,p)=>sum+Number(p.stock||0),0);
