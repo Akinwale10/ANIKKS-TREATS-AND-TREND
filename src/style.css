@@ -187,3 +187,48 @@
  .footer>span:nth-child(4){font-size:10px!important;text-align:center!important}
  .footer>.admin-link{align-self:center!important}
 }
+
+
+/* Rebuilt ANIKKS storefront footer */
+.site-footer{
+  background:#182207;
+  color:#f8f5e9;
+  padding:58px clamp(22px,7vw,110px) 22px;
+  display:grid;
+  grid-template-columns:minmax(260px,1.5fr) minmax(150px,.8fr) minmax(220px,1fr);
+  gap:42px 56px;
+  align-items:start;
+  border-top:5px solid #ff8500;
+}
+.site-footer-main{max-width:390px}
+.site-footer .brand-footer{display:inline-flex;align-items:center;gap:12px;color:#fffcef;text-decoration:none;font-size:20px}
+.site-footer .brand-footer .brand-mark{width:48px;height:48px;background:#fffcef;color:#24310b}
+.site-footer .brand-footer small{display:block;font-size:9px;letter-spacing:.18em;margin-top:5px}
+.site-footer-tagline{font:italic 22px Georgia,serif;color:#ffb45c;margin:22px 0 9px}
+.site-footer-intro{font-size:12px;line-height:1.85;color:#d4d8c9;max-width:330px;margin:0}
+.site-footer-socials{display:flex;gap:17px;flex-wrap:wrap;margin-top:24px}
+.site-footer-socials a{display:flex;align-items:center;gap:8px;color:#fffcef;text-decoration:none;font-size:11px;font-weight:700;transition:color .2s,transform .2s}
+.site-footer-socials a:hover{color:#ffb45c;transform:translateY(-2px)}
+.site-footer .social-symbol{width:34px;height:34px;flex:0 0 34px;font-size:17px}
+.site-footer-links,.site-footer-contact{display:flex;flex-direction:column;align-items:flex-start;gap:13px}
+.site-footer h3{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#ffb45c;margin:4px 0 8px}
+.site-footer-links>a,.site-footer-contact a{font-size:12px;color:#e5e7dc;text-decoration:none;transition:color .2s}
+.site-footer-links>a:hover,.site-footer-contact a:hover{color:#ffb45c}
+.site-footer-contact p{display:flex;align-items:center;gap:10px;margin:0;color:#e5e7dc;font-size:12px;line-height:1.6}
+.site-footer-contact .social-symbol{background:#ffffff14;color:#ffb45c}
+.site-footer-bottom{grid-column:1/-1;border-top:1px solid #ffffff25;padding-top:19px;display:flex;justify-content:space-between;gap:12px;color:#bfc5b2;font-size:10px;line-height:1.6}
+@media(max-width:760px){
+ .site-footer{grid-template-columns:1fr 1fr;gap:34px 22px;padding:44px 7% 20px}
+ .site-footer-main{grid-column:1/-1;max-width:100%;text-align:center;display:flex;flex-direction:column;align-items:center}
+ .site-footer-intro{max-width:420px}
+ .site-footer-socials{justify-content:center}
+ .site-footer-links,.site-footer-contact{align-items:flex-start}
+ .site-footer-bottom{flex-direction:column;text-align:center;align-items:center}
+}
+@media(max-width:430px){
+ .site-footer{grid-template-columns:1fr;gap:28px;padding:38px 8% 18px}
+ .site-footer-main,.site-footer-bottom{grid-column:1}
+ .site-footer-links,.site-footer-contact{align-items:center;text-align:center}
+ .site-footer-contact p{justify-content:center}
+ .site-footer-bottom{gap:6px}
+}
