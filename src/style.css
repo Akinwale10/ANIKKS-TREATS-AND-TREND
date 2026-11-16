@@ -116,3 +116,74 @@
  .footer>span:nth-child(4){order:3;font-size:10px;line-height:1.5}
  .footer>.admin-link{order:4;align-self:flex-start;font-size:10px;padding-top:4px}
 }
+
+
+/* Center every footer element and pair contact text with its matching icon */
+.footer{
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:center!important;
+  text-align:center!important;
+  gap:16px!important;
+  padding:38px 7% 30px!important;
+}
+.footer>.brand-footer{
+  align-self:center!important;
+  justify-content:center!important;
+  text-align:left!important;
+}
+.footer>span:nth-child(2),
+.footer>span:nth-child(4),
+.footer>.admin-link{
+  align-self:center!important;
+  text-align:center!important;
+}
+.footer>.footer-contact-icons{
+  width:100%!important;
+  display:flex!important;
+  flex-direction:row!important;
+  flex-wrap:wrap!important;
+  justify-content:center!important;
+  align-items:center!important;
+  gap:16px 22px!important;
+  text-align:center!important;
+}
+.footer-contact-icons>a,
+.footer-contact-icons>.footer-address{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:9px!important;
+  text-align:center!important;
+}
+.footer-contact-icons .footer-address{white-space:normal!important}
+.footer-contact-icons .social-symbol{
+  display:inline-grid!important;
+  place-items:center!important;
+  flex:0 0 36px!important;
+  width:36px!important;
+  height:36px!important;
+}
+.footer>span:nth-child(4){width:100%;line-height:1.6}
+.footer>.admin-link{white-space:nowrap!important}
+@media(max-width:650px){
+ .footer{align-items:center!important;text-align:center!important;gap:15px!important;padding:32px 6% 26px!important}
+ .footer>span:nth-child(2){display:block!important;font-size:11px!important}
+ .footer>.footer-contact-icons{
+   display:grid!important;
+   grid-template-columns:repeat(2,minmax(0,1fr))!important;
+   justify-items:center!important;
+   align-items:center!important;
+   gap:14px 10px!important;
+ }
+ .footer-contact-icons>a,.footer-contact-icons>.footer-address{
+   width:100%!important;
+   justify-content:center!important;
+   flex-direction:column!important;
+   gap:6px!important;
+ }
+ .footer-contact-icons>.footer-address{grid-column:1/-1!important}
+ .footer>span:nth-child(4){font-size:10px!important;text-align:center!important}
+ .footer>.admin-link{align-self:center!important}
+}
