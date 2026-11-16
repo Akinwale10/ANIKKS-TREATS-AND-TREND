@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { supabase } from "./supabase";
 import "./style.css";
+import AdminDashboard from "./AdminDashboard";
 
 const WA = "2349162259886";
 const PHONE = "+2348124705254";
@@ -250,7 +251,7 @@ function App() {
       <section className="about-section" id="about"><div className="about-mark">A<span>✦</span></div><div className="about-copy"><div className="eyebrow">A NOTE FROM ANIKKS</div><h2>Everyday essentials.<br/><em>Unexpected delight.</em></h2><p>ANIKKS Treats & Trend brings together the things people love — tasty treats, expressive accessories, lovely fragrances and helpful everyday services. We believe shopping should feel easy, personal and full of good energy.</p></div><div className="about-side"><strong>“</strong><p>We make room for the little things that make a big difference.</p><span>THE ANIKKS PROMISE</span></div></section>
       <section className="contact-section" id="contact"><div className="contact-copy"><div className="eyebrow">LET'S MAKE SOMETHING HAPPEN</div><h2>We're just a<br/><em>message away.</em></h2><p>Questions, orders, business enquiries or just saying hello — we'd love to hear from you.</p><a className="btn btn-orange" href={"https://wa.me/"+WA} target="_blank" rel="noreferrer">Start a WhatsApp chat ↗</a></div><div className="contact-details"><div><small>CALL US</small><a href="tel:+2348124705254">{PHONE}</a></div><div><small>WHATSAPP ORDERS</small><a href={"https://wa.me/"+WA}>+234 916 225 9886</a></div><div><small>FIND US</small><span>Ifo & Ilaro, Ogun State, Nigeria</span></div><div><small>FOLLOW OUR JOURNEY</small><a href="https://www.tiktok.com/@anikks.treats.trends" target="_blank" rel="noreferrer">@anikks treats & trends · TikTok ↗</a></div></div></section>
     </main>
-    <footer className="footer"><a className="brand brand-footer" href="#home"><span className="brand-mark">A<span>✦</span></span><span>ANIKKS<small>TREATS & TREND</small></span></a><span>Great finds. Everyday joy.</span><span>© {new Date().getFullYear()} ANIKKS Treats & Trend</span><button className="admin-link" onClick={()=>{setAdminOpen(true);setTab("products");}}>Store manager</button><a href={"https://wa.me/"+WA}>Made with care ↗</a></footer>
+    <footer className="footer"><a className="brand brand-footer" href="#home"><span className="brand-mark">A<span>✦</span></span><span>ANIKKS<small>TREATS & TREND</small></span></a><span>Great finds. Everyday joy.</span><span>© {new Date().getFullYear()} ANIKKS Treats & Trend</span><a className="admin-link" href="/admin">Admin dashboard ↗</a><a href={"https://wa.me/"+WA}>Made with care ↗</a></footer>
 
     {cartOpen && <div className="drawer-backdrop" onClick={()=>{setCartOpen(false);setCheckout(false);}}><aside className="cart-drawer" onClick={e=>e.stopPropagation()}><div className="drawer-head"><div><small>YOUR ANIKKS BAG</small><h2>{checkout?"Delivery details":"Your good finds"} <em>({count})</em></h2></div><button onClick={()=>{setCartOpen(false);setCheckout(false);}}>✕</button></div>
       {!checkout ? <><div className="cart-items">{cartProducts.map(p=><div className="cart-row" key={p.id}><img src={publicImage(p.image_path)} alt=""/><div className="cart-item-info"><strong>{p.name}</strong><small>{money(p.price_ngn)}</small><div className="qty"><button onClick={()=>changeQty(p,-1)}>−</button><span>{cart[p.id]}</span><button onClick={()=>changeQty(p,1)}>＋</button></div></div><b>{money(p.price_ngn*cart[p.id])}</b></div>)}{!count && <div className="cart-empty">Your bag is waiting for something lovely.<br/><a href="#shop" onClick={()=>setCartOpen(false)}>Explore the store →</a></div>}</div><div className="drawer-total"><div><span>Subtotal</span><strong>{money(total)}</strong></div><small>Delivery fee and final availability will be confirmed by our team.</small><button className="btn btn-orange" disabled={!count} onClick={()=>setCheckout(true)}>Continue to checkout ↗</button></div></> :
@@ -271,4 +272,5 @@ function App() {
   </>;
 }
 
-createRoot(document.getElementById("root")).render(<App/>);
+if (window.location.pathname === "/admin" || window.location.pathname === "/admin/") createRoot(document.getElementById("root")).render(<AdminDashboard/>);
+else createRoot(document.getElementById("root")).render(<App/>);
