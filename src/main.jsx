@@ -164,6 +164,7 @@ function App() {
       stock: Math.max(0, Math.floor(Number(form.stock) || 0)),
       is_active: true
     };
+    if (editing) delete record.stock; // Stock changes must go through the audited atomic adjustment RPC.
     const result = editing
       ? await supabase.from("products").update(record).eq("id", editing)
       : await supabase.from("products").insert(record);
