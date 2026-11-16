@@ -179,6 +179,41 @@ export default function AdminDashboard() {
     else { toast(product.is_active?"Product hidden from storefront.":"Product restored to storefront."); await loadProducts(); }
   }
 
+  async function deleteProduct(product) {
+    const confirmed = window.confirm("Delete \"" + product.name + "\"? This removes it from the product catalogue. Products referenced by past orders or inventory records cannot be permanently deleted.");
+    if (!confirmed) return;
+    setBusy(true);
+    const [ordersCheck,movementsCheck] = await Promise.all([
+      supabase.from("order_items").select("id",{count:"exact",head:true}).eq("product_id",product.id),
+      supabase.from("inventory_movements").select("id",{count:"exact",head:true}).eq("product_id",product.id)
+    ]);
+    if (ordersCheck.error || movementsCheck.error) {
+      toast("Could not verify product history. Nothing was deleted.");
+      setBusy(false);
+      return;
+    }
+    if ((ordersCheck.count||0)>0 || (movementsCheck.count||0)>0) {
+      const {error} = await supabase.from("products").update({is_active:false}).eq("id",product.id);
+      if (error) toast("Could not remove product: "+error.message);
+      else { toast("This product has sales or inventory history, so it was safely archived and removed from the storefront."); await loadProducts(); }
+      setBusy(false);
+      return;
+    }
+    const {error} = await supabase.from("products").delete().eq("id",product.id);
+    if (error) {
+      toast("Could not delete product: "+error.message);
+      setBusy(false);
+      return;
+    }
+    if (product.image_path && !/^https?:\\/\\//i.test(product.image_path)) {
+      const {error:imageError} = await supabase.storage.from("product-images").remove([product.image_path]);
+      if (imageError) toast("Product deleted, but its image could not be removed from storage.");
+      else toast("Product deleted successfully.");
+    } else toast("Product deleted successfully.");
+    await loadProducts();
+    setBusy(false);
+  }
+
   async function changeStatus(order,status) {
     const {error} = await supabase.from("orders").update({status,updated_at:new Date().toISOString()}).eq("id",order.id);
     if (error) toast("Could not update order: "+error.message);
@@ -228,7 +263,7 @@ export default function AdminDashboard() {
       {tab==="products"&&<section className="ad-content"><div className="ad-page-intro"><div><span>YOUR SHOPPING COLLECTION</span><h2>Products & stock</h2><p>Create products, manage pricing and keep inventory accurate.</p></div><button className="ad-primary ad-add" onClick={startNew}>＋ Add product</button></div>
         {showForm&&<form className="ad-product-form" onSubmit={saveProduct}><div className="ad-form-title"><h3>{editing?"Edit product":"Add a new product"}</h3><button type="button" onClick={()=>setShowForm(false)}>✕</button></div><div className="ad-form-grid"><label>Product name<input required value={form.name} onChange={e=>setForm({...form,name:e.target.value})}/></label><label>Category<select value={form.category} onChange={e=>setForm({...form,category:e.target.value})}><option>Food</option><option>Shades</option><option>Perfumes</option></select></label><label>Price (₦)<input type="number" min="1" required value={form.price} onChange={e=>setForm({...form,price:e.target.value})}/></label>{!editing&&<label>Opening stock<input type="number" min="0" value={form.stock} onChange={e=>setForm({...form,stock:e.target.value})}/></label>}<label>Product tag<input value={form.tag} onChange={e=>setForm({...form,tag:e.target.value})}/></label><label>Product image (JPG, PNG, WebP · max 5 MB)<input type="file" accept="image/png,image/jpeg,image/webp" onChange={e=>setImageFile(e.target.files?.[0]||null)}/></label><label className="ad-wide">Description<textarea value={form.description} onChange={e=>setForm({...form,description:e.target.value})}/></label></div>{form.image_path&&!imageFile&&<img className="ad-image-preview" src={imageUrl(form.image_path)} alt="Current product"/>}<div className="ad-form-actions"><button className="ad-primary" disabled={busy}>{busy?"Saving…":editing?"Save changes":"Create product"}</button><button type="button" className="ad-secondary" onClick={()=>setShowForm(false)}>Cancel</button></div></form>}
         <div className="ad-toolbar"><input placeholder="Search products…" value={query} onChange={e=>setQuery(e.target.value)}/><select value={category} onChange={e=>setCategory(e.target.value)}><option>All</option><option>Food</option><option>Shades</option><option>Perfumes</option></select><span>{filteredProducts.length} products</span></div>
-        <div className="ad-table-wrap"><table className="ad-table"><thead><tr><th>PRODUCT</th><th>CATEGORY</th><th>PRICE</th><th>STOCK</th><th>STATUS</th><th>ACTIONS</th></tr></thead><tbody>{filteredProducts.map(p=><tr key={p.id}><td><div className="ad-product-cell">{p.image_path?<img src={imageUrl(p.image_path)} alt=""/>:<span className="ad-no-image">A</span>}<b>{p.name}<small>{p.tag||"—"}</small></b></div></td><td>{p.category}</td><td>{money(p.price_ngn)}</td><td><div className="ad-stock-control"><input aria-label={"Adjust stock for "+p.name} type="number" placeholder="+/-" value={adjustments[p.id]||""} onChange={e=>setAdjustments({...adjustments,[p.id]:e.target.value})}/><button onClick={()=>adjustStock(p)} disabled={busy}>Apply</button><b className={p.stock<=5?"low":""}>{p.stock}</b></div></td><td><span className={"ad-status "+(p.is_active?"active":"hidden")}>{p.is_active?"Active":"Hidden"}</span></td><td><div className="ad-actions"><button onClick={()=>startEdit(p)}>Edit</button><button onClick={()=>toggleProduct(p)}>{p.is_active?"Hide":"Restore"}</button></div></td></tr>)}</tbody></table>{filteredProducts.length===0&&<div className="ad-empty">No matching products yet. Add your first product to get started.</div>}</div>
+        <div className="ad-table-wrap"><table className="ad-table"><thead><tr><th>PRODUCT</th><th>CATEGORY</th><th>PRICE</th><th>STOCK</th><th>STATUS</th><th>ACTIONS</th></tr></thead><tbody>{filteredProducts.map(p=><tr key={p.id}><td><div className="ad-product-cell">{p.image_path?<img src={imageUrl(p.image_path)} alt=""/>:<span className="ad-no-image">A</span>}<b>{p.name}<small>{p.tag||"—"}</small></b></div></td><td>{p.category}</td><td>{money(p.price_ngn)}</td><td><div className="ad-stock-control"><input aria-label={"Adjust stock for "+p.name} type="number" placeholder="+/-" value={adjustments[p.id]||""} onChange={e=>setAdjustments({...adjustments,[p.id]:e.target.value})}/><button onClick={()=>adjustStock(p)} disabled={busy}>Apply</button><b className={p.stock<=5?"low":""}>{p.stock}</b></div></td><td><span className={"ad-status "+(p.is_active?"active":"hidden")}>{p.is_active?"Active":"Hidden"}</span></td><td><div className="ad-actions"><button onClick={()=>startEdit(p)}>Edit</button><button onClick={()=>toggleProduct(p)}>{p.is_active?"Hide":"Restore"}</button><button className="ad-delete" onClick={()=>deleteProduct(p)} disabled={busy}>Delete</button></div></td></tr>)}</tbody></table>{filteredProducts.length===0&&<div className="ad-empty">No matching products yet. Add your first product to get started.</div>}</div>
       </section>}
       {tab==="orders"&&<section className="ad-content"><div className="ad-page-intro"><div><span>FULFILMENT & CUSTOMER CARE</span><h2>Customer orders</h2><p>Review customer details, order items and update fulfilment status.</p></div><button className="ad-secondary" onClick={loadOrders}>↻ Refresh orders</button></div><div className="ad-order-list">{orders.length?orders.map(o=><article className="ad-order-card" key={o.id}><div className="ad-order-top"><div><span>{o.order_number}</span><h3>{o.customer_name}</h3><small>{new Date(o.created_at).toLocaleString("en-NG")}</small></div><div><strong>{money(o.total_ngn)}</strong><span className={"ad-status "+o.status}>{o.status}</span></div></div><div className="ad-order-info"><span>☎ {o.phone}</span><span>⌖ {o.delivery_address}</span></div>{o.notes&&<p className="ad-order-note">Note: {o.notes}</p>}<div className="ad-order-items">{(o.order_items||[]).map(i=><div key={i.id}><span>{i.product_name} × {i.quantity}</span><b>{money(i.line_total_ngn)}</b></div>)}</div><div className="ad-order-bottom"><span>{(o.order_items||[]).length} line item(s)</span><label>Update status <select value={o.status} onChange={e=>changeStatus(o,e.target.value)}><option value="pending">Pending</option><option value="confirmed">Confirmed</option><option value="processing">Processing</option><option value="shipped">Shipped</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option></select></label></div></article>):<div className="ad-empty">No customer orders have been received yet.</div>}</div></section>}
       {tab==="inventory"&&<section className="ad-content"><div className="ad-page-intro"><div><span>STOCK CONTROL</span><h2>Inventory history</h2><p>Audit trail of stock additions, reductions and customer orders.</p></div><button className="ad-secondary" onClick={loadMovements}>↻ Refresh history</button></div><div className="ad-table-wrap"><table className="ad-table"><thead><tr><th>DATE</th><th>PRODUCT</th><th>CHANGE</th><th>REASON</th><th>REFERENCE</th></tr></thead><tbody>{movements.map(m=><tr key={m.id}><td>{new Date(m.created_at).toLocaleString("en-NG")}</td><td>{m.products?.name||"Product"}</td><td><b className={m.quantity_change>0?"ad-positive":"ad-negative"}>{m.quantity_change>0?"+":""}{m.quantity_change}</b></td><td>{m.reason||"—"}</td><td>{m.order_id?"Customer order":"Manual adjustment"}</td></tr>)}</tbody></table>{movements.length===0&&<div className="ad-empty">Inventory changes will be listed here.</div>}</div></section>}
