@@ -272,5 +272,4 @@ function App() {
   </>;
 }
 
-if (window.location.pathname === "/admin" || window.location.pathname === "/admin/") createRoot(document.getElementById("root")).render(<AdminDashboard/>);
-else createRoot(document.getElementById("root")).render(<App/>);
+createRoot(document.getElementById("root")).render(window.location.pathname === "/admin" || window.location.pathname === "/admin/" ? <AdminDashboard/> : <App/>);
