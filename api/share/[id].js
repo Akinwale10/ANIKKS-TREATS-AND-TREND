@@ -47,9 +47,9 @@ export default async function handler(req, res) {
     }
 
     const origin = "https://annikstreat.vercel.app";
-    const shareUrl = origin + "/api/share/" + encodeURIComponent(id);
+    const shareUrl = origin + "/product/" + encodeURIComponent(id);
     const destination = origin + "/?product=" + encodeURIComponent(id);
-    const image = productImageUrl(base, product.image_path);
+    const image = origin + "/api/product-image/" + encodeURIComponent(id);
     const title = product.name + " | ANIKKS Treats & Trend";
     const description = [product.category, "₦" + Number(product.price_ngn || 0).toLocaleString("en-NG"), product.description]
       .filter(Boolean).join(" | ").slice(0, 300);
@@ -60,8 +60,8 @@ export default async function handler(req, res) {
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${escapeHtml(title)}</title>
 <meta name="description" content="${escapeHtml(description)}">
-<link rel="canonical" href="${escapeHtml(destination)}">
-<meta property="og:type" content="product">
+<link rel="canonical" href="${escapeHtml(shareUrl)}">
+<meta property="og:type" content="website">
 <meta property="og:site_name" content="ANIKKS Treats & Trend">
 <meta property="og:title" content="${escapeHtml(title)}">
 <meta property="og:description" content="${escapeHtml(description)}">
@@ -69,7 +69,7 @@ export default async function handler(req, res) {
 <meta property="og:image" content="${escapeHtml(image)}">
 <meta property="og:image:secure_url" content="${escapeHtml(image)}">
 <meta property="og:image:alt" content="${escapeHtml(product.name)}">
-<meta property="og:image:type" content="image/jpeg">
+
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="1200">
 <meta name="twitter:card" content="summary_large_image">
@@ -87,7 +87,7 @@ export default async function handler(req, res) {
 <script>window.location.replace(${JSON.stringify(destination)});</script>
 </body>
 </html>`;
-    res.setHeader("Cache-Control", "public, s-maxage=300, stale-while-revalidate=600");
+    res.setHeader("Cache-Control", "public, s-maxage=120, stale-while-revalidate=300");
     res.setHeader("Content-Type", "text/html; charset=utf-8");
     res.status(200).send(html);
   } catch (error) {
