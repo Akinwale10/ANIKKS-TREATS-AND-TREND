@@ -20,7 +20,10 @@ const heroSlides = [
 function publicImage(path) {
   if (!path) return "";
   if (/^https?:\/\//i.test(path)) return path;
-  return supabase.storage.from("product-images").getPublicUrl(path).data.publicUrl;
+  let clean = String(path).trim().replace(/^\/+/, "");
+  clean = clean.replace(/^storage\/v1\/object\/public\/product-images\//, "");
+  clean = clean.replace(/^product-images\//, "");
+  return supabase.storage.from("product-images").getPublicUrl(clean).data.publicUrl;
 }
 
 function App() {
@@ -62,6 +65,24 @@ function App() {
   const [heroSlide, setHeroSlide] = useState(0);
 
   const notify = message => { setToast(message); window.setTimeout(() => setToast(""), 3000); };
+
+  async function shareProduct(product) {
+    const url = window.location.origin + "/api/share/" + encodeURIComponent(product.id);
+    const title = product.name + " | ANIKKS Treats & Trend";
+    const shareText = product.name + " — " + money(product.price_ngn) + ". " + (product.description || "Discover this product at ANIKKS Treats & Trend.");
+    try {
+      if (navigator.share) {
+        await navigator.share({title, text:shareText, url});
+      } else if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(url);
+        notify("Product link copied. Share it on your social media.");
+      } else {
+        window.prompt("Copy this product link:", url);
+      }
+    } catch (error) {
+      if (error?.name !== "AbortError") notify("Could not open sharing. Please try again.");
+    }
+  }
   useEffect(() => { const labels={home:"Home",shop:"Shop",category:category,services:"Services",about:"Our Story",contact:"Contact"}; document.title=(labels[currentPage]||"Shop")+" | ANIKKS Treats & Trend"; }, []);
   useEffect(() => { if(currentPage!=="home") return; const timer=window.setInterval(()=>setHeroSlide(index=>(index+1)%heroSlides.length),5500); return ()=>window.clearInterval(timer); }, []);
 
@@ -79,6 +100,14 @@ function App() {
     setIsAdmin(ok);
     return ok;
   }
+
+  useEffect(() => {
+    if (!products.length) return;
+    const sharedProductId = new URLSearchParams(window.location.search).get("product");
+    if (!sharedProductId) return;
+    const sharedProduct = products.find(product => product.id === sharedProductId);
+    if (sharedProduct) setPreviewProduct(sharedProduct);
+  }, [products]);
 
   useEffect(() => {
     loadProducts();
@@ -257,7 +286,7 @@ function App() {
   }
 
   return <>
-    <div className="announcement">A little joy, a lot of good finds. <span>Serving Ifo & Ilaro, Ogun State</span></div>
+    <div className="announcement">A little joy, a lot of good finds. <span>Serving Abeokuta, Ogun State & Ibadan, Oyo State</span></div>
     <header className="header">
       <a className="brand" href="/"><span className="brand-mark">A<span>✦</span></span><span>ANIKKS<small>TREATS & TREND</small></span></a>
       <button className="mobile-toggle" aria-label={mobileMenuOpen?"Close navigation":"Open navigation"} aria-expanded={mobileMenuOpen} onClick={()=>setMobileMenuOpen(open=>!open)}>{mobileMenuOpen?"×":"☰"}</button>
@@ -270,13 +299,13 @@ function App() {
       {currentPage==="home" && <section className="trust-strip"><div><b>01</b><span>GOOD THINGS</span></div><div><b>02</b><span>GREAT VALUE</span></div><div><b>03</b><span>PERSONAL SERVICE</span></div><div><b>04</b><span>JOY IN EVERY ORDER</span></div></section>}
       {currentPage==="home" && <section className="home-category-section"><div className="section-heading"><div><div className="eyebrow">EXPLORE ANIKKS</div><h2>Find your <em>favourite.</em></h2></div><p>Shop by collection and discover<br/>something made for your day.</p></div><div className="home-category-grid"><a href="/category/food"><span>01 / TREATS</span><b>Food & snacks</b><small>Discover tasty favourites ↗</small></a><a href="/category/shades"><span>02 / STYLE</span><b>Shades & eyewear</b><small>Find your look ↗</small></a><a href="/category/perfumes"><span>03 / SCENT</span><b>Perfumes</b><small>Explore beautiful scents ↗</small></a></div><a className="category-all-link" href="/shop">Explore the complete collection →</a></section>}
       {(currentPage==="shop" || currentPage==="category") && <section className="shop-section" id="shop"><div className="section section-shop"><div className="section-heading"><div><div className="eyebrow">THE GOOD FINDS EDIT</div><h2>Something for <em>everyone.</em></h2></div><p>Handpicked favourites, ready to make<br/>your day a little brighter.</p></div><div className="shop-tools"><div className="filters">{categories.map(c=><button key={c} className={category===c?"active":""} onClick={()=>setCategory(c)}>{c}</button>)}</div><div className="shop-search-row"><label className="search"><span>⌕</span><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search the store..."/></label></div></div>
-      {loading ? <div className="empty">Loading the ANIKKS collection…</div> : <div className="product-grid">{visible.map(p=><article className="product-card" key={p.id}><div className="product-image"><button type="button" className="product-image-preview" onClick={()=>setPreviewProduct(p)} aria-label={"View a larger image of "+p.name}><img src={publicImage(p.image_path)} alt={p.name} loading="lazy"/><span className="image-zoom-hint">View image ⤢</span></button><span className="product-tag">{p.tag || p.category}</span><button className="quick-add" onClick={()=>add(p)} disabled={!p.stock}>+</button></div><div className="product-meta"><span>{p.category}</span><span>{p.stock>0?"IN STOCK":"OUT OF STOCK"}</span></div><h3>{p.name}</h3><p>{p.description}</p><div className="product-bottom"><strong>{money(p.price_ngn)}</strong><button disabled={!p.stock} onClick={()=>add(p)}>{p.stock?"Add to bag":"Unavailable"} <span>＋</span></button></div></article>)}</div>}
+      {loading ? <div className="empty">Loading the ANIKKS collection…</div> : <div className="product-grid">{visible.map(p=><article className="product-card" key={p.id}><div className="product-image"><button type="button" className="product-image-preview" onClick={()=>setPreviewProduct(p)} aria-label={"View a larger image of "+p.name}><img src={publicImage(p.image_path)} alt={p.name} loading="lazy"/><span className="image-zoom-hint">View image ⤢</span></button><span className="product-tag">{p.tag || p.category}</span><button className="quick-add" onClick={()=>add(p)} disabled={!p.stock}>+</button></div><div className="product-meta"><span>{p.category}</span><span>{p.stock>0?"IN STOCK":"OUT OF STOCK"}</span></div><h3>{p.name}</h3><p>{p.description}</p><div className="product-bottom"><strong>{money(p.price_ngn)}</strong><div className="product-actions"><button type="button" className="product-share-button" onClick={()=>shareProduct(p)} aria-label={"Share "+p.name}>↗ Share</button><button disabled={!p.stock} onClick={()=>add(p)}>{p.stock?"Add to bag":"Unavailable"} <span>＋</span></button></div></div></article>)}</div>}
       {!loading && visible.length===0 && <div className="empty">No products found. Please check back soon or contact us on WhatsApp.</div>}
       <div className="shop-bottom"><span>{visible.length} products available</span><button onClick={()=>{setCategory("All");setSearch("");}}>View all products ↗</button></div></div></section>}
       {(currentPage==="home" || currentPage==="services") && <section className="feature-band"><div className="feature-photo">{featureProductImage ? <img key={featureProductImage} className="feature-product-image" src={featureProductImage} alt="A product from the ANIKKS collection" /> : <div className="feature-photo-fallback">ANIKKS TREATS &amp; TREND</div>}</div><div className="feature-copy"><div className="eyebrow">A LITTLE MORE THAN SHOPPING</div><h2>Good service is<br/><em>our signature.</em></h2><p>Need a POS, a Moniepoint account, business support or a quick answer? Our team is ready to help you get things moving.</p><a className="btn btn-light" href="#services">Explore our services ↗</a></div></section>}
       {(currentPage==="home" || currentPage==="services") && <section className="section services-section" id="services"><div className="section-heading"><div><div className="eyebrow">HERE TO MAKE LIFE EASIER</div><h2>More ways we can <em>help.</em></h2></div><p>Beyond the store, we're here with practical<br/>services and a friendly face.</p></div><div className="service-grid"><div className="service-card"><span className="service-icon">◈</span><small>01 / FINANCIAL SERVICES</small><h3>Moniepoint services</h3><p>POS transactions, ATM services, account opening and Moniebook support.</p><a href={"https://wa.me/"+WA}>Enquire now ↗</a></div><div className="service-card"><span className="service-icon">↗</span><small>02 / BUSINESS SUPPORT</small><h3>Grow your business</h3><p>Ask us about CAC registration support and business documentation guidance.</p><a href={"https://wa.me/"+WA}>Let's talk ↗</a></div><div className="service-card"><span className="service-icon">✳</span><small>03 / PERSONAL SUPPORT</small><h3>Friendly assistance</h3><p>Need help choosing a product or placing an order? We're only a message away.</p><a href={"https://wa.me/"+WA}>Message ANIKKS ↗</a></div></div></section>}
       {(currentPage==="home" || currentPage==="about") && <section className="about-section" id="about"><div className="about-mark">A<span>✦</span></div><div className="about-copy"><div className="eyebrow">A NOTE FROM ANIKKS</div><h2>Everyday essentials.<br/><em>Unexpected delight.</em></h2><p>ANIKKS Treats & Trend brings together the things people love — tasty treats, expressive accessories, lovely fragrances and helpful everyday services. We believe shopping should feel easy, personal and full of good energy.</p></div><div className="about-side"><strong>“</strong><p>We make room for the little things that make a big difference.</p><span>THE ANIKKS PROMISE</span></div></section>}
-      {(currentPage==="home" || currentPage==="contact") && <section className="contact-section" id="contact"><div className="contact-copy"><div className="eyebrow">LET'S MAKE SOMETHING HAPPEN</div><h2>We're just a<br/><em>message away.</em></h2><p>Questions, orders, business enquiries or just saying hello — we'd love to hear from you.</p><a className="btn btn-orange" href={"https://wa.me/"+WA} target="_blank" rel="noreferrer">Start a WhatsApp chat ↗</a></div><div className="contact-details"><div className="contact-detail"><span className="contact-icon call-icon" aria-hidden="true">☎</span><span><small>CALL US</small><a href="tel:+2348124705254">{PHONE}</a></span></div><div className="contact-detail"><span className="contact-icon whatsapp-icon" aria-hidden="true">◉</span><span><small>WHATSAPP ORDERS</small><a href={"https://wa.me/"+WA} target="_blank" rel="noreferrer">+234 916 225 9886</a></span></div><div className="contact-detail"><span className="contact-icon location-icon" aria-hidden="true">⌖</span><span><small>FIND US</small><span>Ifo & Ilaro, Ogun State, Nigeria</span></span></div><div className="contact-detail"><span className="contact-icon tiktok-icon" aria-hidden="true">♪</span><span><small>FOLLOW OUR JOURNEY</small><a href="https://www.tiktok.com/@anikks.treats.trends" target="_blank" rel="noreferrer">@anikks treats & trends · TikTok ↗</a></span></div></div></section>}
+      {(currentPage==="home" || currentPage==="contact") && <section className="contact-section" id="contact"><div className="contact-copy"><div className="eyebrow">LET'S MAKE SOMETHING HAPPEN</div><h2>We're just a<br/><em>message away.</em></h2><p>Questions, orders, business enquiries or just saying hello — we'd love to hear from you.</p><a className="btn btn-orange" href={"https://wa.me/"+WA} target="_blank" rel="noreferrer">Start a WhatsApp chat ↗</a></div><div className="contact-details"><div className="contact-detail"><span className="contact-icon call-icon" aria-hidden="true">☎</span><span><small>CALL US</small><a href="tel:+2348124705254">{PHONE}</a></span></div><div className="contact-detail"><span className="contact-icon whatsapp-icon" aria-hidden="true">◉</span><span><small>WHATSAPP ORDERS</small><a href={"https://wa.me/"+WA} target="_blank" rel="noreferrer">+234 916 225 9886</a></span></div><div className="contact-detail"><span className="contact-icon location-icon" aria-hidden="true">⌖</span><span><small>FIND US</small><span>Abeokuta, Ogun State & Ibadan, Oyo State, Nigeria</span></span></div><div className="contact-detail"><span className="contact-icon tiktok-icon" aria-hidden="true">♪</span><span><small>FOLLOW OUR JOURNEY</small><a href="https://www.tiktok.com/@anikks.treats.trends" target="_blank" rel="noreferrer">@anikks treats & trends · TikTok ↗</a></span></div></div></section>}
     </main>
     <footer className="site-footer">
       <div className="site-footer-main">
@@ -294,7 +323,7 @@ function App() {
       <div className="site-footer-bottom"><span>© {new Date().getFullYear()} ANIKKS Treats & Trend. All rights reserved.</span><span>Thoughtfully selected. Happily delivered.</span></div>
     </footer>
 
-    {previewProduct && <div className="product-lightbox" role="dialog" aria-modal="true" aria-label={"Product image: "+previewProduct.name} onClick={()=>setPreviewProduct(null)}><button className="product-lightbox-close" type="button" aria-label="Close image preview" onClick={()=>setPreviewProduct(null)}>×</button><div className="product-lightbox-content" onClick={e=>e.stopPropagation()}><img src={publicImage(previewProduct.image_path)} alt={previewProduct.name}/><div className="product-lightbox-caption"><span>{previewProduct.category}</span><strong>{previewProduct.name}</strong><b>{money(previewProduct.price_ngn)}</b><button type="button" className="btn btn-orange" onClick={()=>{add(previewProduct);setPreviewProduct(null);}}>Add to bag ↗</button></div></div></div>}
+    {previewProduct && <div className="product-lightbox" role="dialog" aria-modal="true" aria-label={"Product image: "+previewProduct.name} onClick={()=>setPreviewProduct(null)}><button className="product-lightbox-close" type="button" aria-label="Close image preview" onClick={()=>setPreviewProduct(null)}>×</button><div className="product-lightbox-content" onClick={e=>e.stopPropagation()}><img src={publicImage(previewProduct.image_path)} alt={previewProduct.name}/><div className="product-lightbox-caption"><span>{previewProduct.category}</span><strong>{previewProduct.name}</strong><b>{money(previewProduct.price_ngn)}</b><button type="button" className="product-share-button product-share-lightbox" onClick={()=>shareProduct(previewProduct)}>↗ Share product</button><button type="button" className="btn btn-orange" onClick={()=>{add(previewProduct);setPreviewProduct(null);}}>Add to bag ↗</button></div></div></div>}
     {cartOpen && <div className="drawer-backdrop" onClick={()=>{setCartOpen(false);setCheckout(false);}}><aside className="cart-drawer" onClick={e=>e.stopPropagation()}><div className="drawer-head"><div><small>YOUR ANIKKS BAG</small><h2>{checkout?"Delivery details":"Your good finds"} <em>({count})</em></h2></div><button onClick={()=>{setCartOpen(false);setCheckout(false);}}>✕</button></div>
       {!checkout ? <><div className="cart-items">{cartProducts.map(p=><div className="cart-row" key={p.id}><img src={publicImage(p.image_path)} alt=""/><div className="cart-item-info"><strong>{p.name}</strong><small>{money(p.price_ngn)}</small><div className="qty"><button onClick={()=>changeQty(p,-1)}>−</button><span>{cart[p.id]}</span><button onClick={()=>changeQty(p,1)}>＋</button></div></div><b>{money(p.price_ngn*cart[p.id])}</b></div>)}{!count && <div className="cart-empty">Your bag is waiting for something lovely.<br/><a href="#shop" onClick={()=>setCartOpen(false)}>Explore the store →</a></div>}</div><div className="drawer-total"><div><span>Subtotal</span><strong>{money(total)}</strong></div><small>Delivery fee and final availability will be confirmed by our team.</small><button className="btn btn-orange" disabled={!count} onClick={()=>setCheckout(true)}>Continue to checkout ↗</button></div></> :
       <form className="checkout-form" onSubmit={placeOrder}><p>Your order is securely saved before we open WhatsApp for confirmation.</p><label>Full name<input required value={customer.name} onChange={e=>setCustomer({...customer,name:e.target.value})}/></label><label>Phone number<input required type="tel" value={customer.phone} onChange={e=>setCustomer({...customer,phone:e.target.value})}/></label><label>Delivery location<input required value={customer.address} onChange={e=>setCustomer({...customer,address:e.target.value})}/></label><label>Order note (optional)<textarea value={customer.notes} onChange={e=>setCustomer({...customer,notes:e.target.value})}/></label><div className="checkout-total"><span>Order subtotal</span><strong>{money(total)}</strong></div><button className="btn btn-orange" type="submit">Place order & continue on WhatsApp ↗</button><button className="back-link" type="button" onClick={()=>setCheckout(false)}>← Back to bag</button></form>}
