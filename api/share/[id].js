@@ -4,8 +4,11 @@ function escapeHtml(value) {
   })[char]);
 }
 
-function publicImageUrl(base, path) {
-  const clean = String(path || "").trim()
+function productImageUrl(base, path) {
+  const raw = String(path || "").trim();
+  if (!raw) return "";
+  if (/^https?:\/\//i.test(raw)) return raw;
+  const clean = raw
     .replace(/^\/+/, "")
     .replace(/^storage\/v1\/object\/public\/product-images\//, "")
     .replace(/^product-images\//, "");
@@ -24,7 +27,7 @@ export default async function handler(req, res) {
     return;
   }
   if (!key) {
-    res.status(503).send("Product sharing is temporarily unavailable.");
+    res.status(503).send("Product sharing is temporarily unavailable. Please open the shop directly.");
     return;
   }
 
@@ -43,18 +46,21 @@ export default async function handler(req, res) {
       return;
     }
 
+    const origin = "https://annikstreat.vercel.app";
+    const shareUrl = origin + "/api/share/" + encodeURIComponent(id);
+    const destination = origin + "/?product=" + encodeURIComponent(id);
+    const image = productImageUrl(base, product.image_path);
     const title = product.name + " | ANIKKS Treats & Trend";
     const description = [product.category, "₦" + Number(product.price_ngn || 0).toLocaleString("en-NG"), product.description]
-      .filter(Boolean).join(" · ").slice(0, 300);
-    const image = publicImageUrl(base, product.image_path);
-    const shareUrl = "https://annikstreat.vercel.app/api/share/" + encodeURIComponent(id);
-    const destination = "https://annikstreat.vercel.app/?product=" + encodeURIComponent(id);
+      .filter(Boolean).join(" | ").slice(0, 300);
     const html = `<!doctype html>
-<html lang="en"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${escapeHtml(title)}</title>
 <meta name="description" content="${escapeHtml(description)}">
-<link rel="canonical" href="${escapeHtml(shareUrl)}">
+<link rel="canonical" href="${escapeHtml(destination)}">
 <meta property="og:type" content="product">
 <meta property="og:site_name" content="ANIKKS Treats & Trend">
 <meta property="og:title" content="${escapeHtml(title)}">
@@ -63,18 +69,25 @@ export default async function handler(req, res) {
 <meta property="og:image" content="${escapeHtml(image)}">
 <meta property="og:image:secure_url" content="${escapeHtml(image)}">
 <meta property="og:image:alt" content="${escapeHtml(product.name)}">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="1200">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="${escapeHtml(title)}">
 <meta name="twitter:description" content="${escapeHtml(description)}">
 <meta name="twitter:image" content="${escapeHtml(image)}">
-<meta http-equiv="refresh" content="1;url=${escapeHtml(destination)}">
-</head><body style="font-family:Arial,sans-serif;background:#fffcef;color:#24310b;text-align:center;padding:40px 16px">
+<meta http-equiv="refresh" content="0;url=${escapeHtml(destination)}">
+</head>
+<body style="font-family:Arial,sans-serif;background:#fffcef;color:#24310b;text-align:center;padding:40px 16px">
 <img src="${escapeHtml(image)}" alt="${escapeHtml(product.name)}" style="width:min(100%,420px);max-height:55vh;object-fit:contain;border-radius:12px">
-<h1>${escapeHtml(product.name)}</h1><p>${escapeHtml(description)}</p>
-<p>Opening ANIKKS Treats & Trend…</p><a href="${escapeHtml(destination)}">View product</a>
-<script>location.replace(${JSON.stringify(destination)});</script>
-</body></html>`;
-    res.setHeader("Cache-Control", "public, s-maxage=60, stale-while-revalidate=300");
+<h1>${escapeHtml(product.name)}</h1>
+<p>${escapeHtml(description)}</p>
+<p>Opening this product on ANIKKS Treats & Trend...</p>
+<a href="${escapeHtml(destination)}">View this exact product</a>
+<script>window.location.replace(${JSON.stringify(destination)});</script>
+</body>
+</html>`;
+    res.setHeader("Cache-Control", "public, s-maxage=300, stale-while-revalidate=600");
     res.setHeader("Content-Type", "text/html; charset=utf-8");
     res.status(200).send(html);
   } catch (error) {
