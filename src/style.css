@@ -245,3 +245,38 @@
 .product-lightbox-content.image-load-failed{min-height:240px;background:#f4efdf;border-radius:12px;display:flex;align-items:center;justify-content:center}
 .product-lightbox-content.image-load-failed:after{content:"Product image temporarily unavailable";color:#24310b;font-size:14px;padding:30px;text-align:center}
 @media(max-width:650px){.product-actions{gap:5px}.product-actions .product-share-button{padding:7px 8px;font-size:9px}.product-actions button:not(.product-share-button){font-size:8px}}
+
+
+/* Smooth, consistent motion throughout the storefront */
+:root{scroll-behavior:smooth}
+html{scroll-behavior:smooth;scroll-padding-top:100px}
+body{overflow-x:hidden}
+a,button,[role="button"],input,select,textarea,.product-card,.service-card,.contact-detail,.brand,.product-image-preview,.quick-add,.bag-button,.btn{
+  transition:color .22s ease,background-color .22s ease,border-color .22s ease,box-shadow .25s ease,transform .25s cubic-bezier(.2,.75,.25,1),opacity .25s ease,filter .25s ease;
+}
+button:active,[role="button"]:active{transform:scale(.96)}
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{
+  outline:3px solid rgba(255,133,0,.55);outline-offset:3px
+}
+.product-card,.service-card,.contact-detail{will-change:transform}
+.product-card:hover,.service-card:hover{transform:translateY(-5px);box-shadow:0 16px 38px rgba(36,49,11,.10)}
+.product-image-preview img{transition:transform .55s cubic-bezier(.2,.75,.25,1),filter .35s ease}
+.product-image-preview:hover img{transform:scale(1.045)}
+.scroll-reveal{opacity:0;transform:translate3d(0,24px,0);transition:opacity .65s ease var(--reveal-delay,0ms),transform .65s cubic-bezier(.2,.75,.25,1) var(--reveal-delay,0ms);will-change:opacity,transform}
+.scroll-reveal.is-visible{opacity:1;transform:translate3d(0,0,0)}
+.header{transition:box-shadow .25s ease,background-color .25s ease}
+.nav button,.text-link{transition:color .2s ease,transform .2s ease}
+.nav button:active,.text-link:active{transform:translateY(1px)}
+.quick-add,.bag-button,.btn,.product-bottom button,.product-share-button{transition:all .22s cubic-bezier(.2,.75,.25,1)}
+.quick-add:hover,.bag-button:hover,.btn:hover,.product-bottom button:hover,.product-share-button:hover{transform:translateY(-2px)}
+.drawer-backdrop,.product-lightbox,.modal-backdrop{animation:overlayFadeIn .22s ease both}
+.cart-drawer,.product-lightbox-content,.modal-card{animation:panelEnter .32s cubic-bezier(.2,.75,.25,1) both}
+.toast{animation:toastEnter .28s cubic-bezier(.2,.75,.25,1) both}
+@keyframes overlayFadeIn{from{opacity:0}to{opacity:1}}
+@keyframes panelEnter{from{opacity:0;transform:translate3d(0,14px,0) scale(.985)}to{opacity:1;transform:translate3d(0,0,0) scale(1)}}
+@keyframes toastEnter{from{opacity:0;transform:translate3d(0,10px,0)}to{opacity:1;transform:translate3d(0,0,0)}}
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto!important}
+  *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+  .scroll-reveal{opacity:1!important;transform:none!important}
+}
