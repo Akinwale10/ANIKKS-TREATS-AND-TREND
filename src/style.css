@@ -232,3 +232,16 @@
  .site-footer-contact p{justify-content:center}
  .site-footer-bottom{gap:6px}
 }
+
+
+/* Product sharing controls and resilient image fallbacks */
+.product-actions{display:flex;align-items:center;gap:10px}
+.product-actions button{white-space:nowrap}
+.product-actions .product-share-button,.product-share-button{border:1px solid #e5d7bd;background:#fff8e8;color:#7a4b0b;border-radius:24px;padding:8px 11px;font-size:10px;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;gap:5px;transition:background .2s,border-color .2s,transform .2s}
+.product-actions .product-share-button:hover,.product-share-button:hover{background:#ffead0;border-color:#ff8500;transform:translateY(-1px)}
+.product-share-lightbox{justify-content:center}
+.product-image-preview.image-load-failed{display:grid;place-items:center;background:linear-gradient(135deg,#f4efdf,#e5e0cf)}
+.product-image-preview.image-load-failed:after{content:"ANIKKS TREATS & TREND";font-size:10px;font-weight:800;letter-spacing:.13em;color:#777b5b;text-align:center;padding:16px}
+.product-lightbox-content.image-load-failed{min-height:240px;background:#f4efdf;border-radius:12px;display:flex;align-items:center;justify-content:center}
+.product-lightbox-content.image-load-failed:after{content:"Product image temporarily unavailable";color:#24310b;font-size:14px;padding:30px;text-align:center}
+@media(max-width:650px){.product-actions{gap:5px}.product-actions .product-share-button{padding:7px 8px;font-size:9px}.product-actions button:not(.product-share-button){font-size:8px}}
