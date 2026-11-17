@@ -67,7 +67,7 @@ function App() {
   const notify = message => { setToast(message); window.setTimeout(() => setToast(""), 3000); };
 
   async function shareProduct(product) {
-    const url = "https://annikstreat.vercel.app/api/share/" + encodeURIComponent(product.id);
+    const url = "https://annikstreat.vercel.app/product/" + encodeURIComponent(product.id);
     const title = product.name + " | ANIKKS Treats & Trend";
     const shareText = product.name + " - " + money(product.price_ngn) + ". " + (product.description || "Discover this product at ANIKKS Treats & Trend.");
     try {
