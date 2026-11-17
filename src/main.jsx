@@ -67,7 +67,7 @@ function App() {
   const notify = message => { setToast(message); window.setTimeout(() => setToast(""), 3000); };
 
   async function shareProduct(product) {
-    const url = window.location.origin + "/api/share/" + encodeURIComponent(product.id);
+    const url = "https://annikstreat.vercel.app/api/share/" + encodeURIComponent(product.id);
     const title = product.name + " | ANIKKS Treats & Trend";
     const shareText = product.name + " - " + money(product.price_ngn) + ". " + (product.description || "Discover this product at ANIKKS Treats & Trend.");
     try {
@@ -75,7 +75,7 @@ function App() {
         await navigator.share({title, text:shareText, url});
       } else if (navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(url);
-        notify("Product link copied. Share it on your social media.");
+        notify("Unique product link copied. It opens this exact product on ANIKKS.");
       } else {
         window.prompt("Copy this product link:", url);
       }
@@ -126,11 +126,13 @@ function App() {
   }
 
   useEffect(() => {
-    if (!products.length) return;
     const sharedProductId = new URLSearchParams(window.location.search).get("product");
-    if (!sharedProductId) return;
-    const sharedProduct = products.find(product => product.id === sharedProductId);
-    if (sharedProduct) setPreviewProduct(sharedProduct);
+    if (!sharedProductId || !products.length) return;
+    const sharedProduct = products.find(product => String(product.id).toLowerCase() === String(sharedProductId).toLowerCase());
+    if (sharedProduct) {
+      setPreviewProduct(sharedProduct);
+      window.setTimeout(() => document.querySelector(".product-lightbox")?.scrollIntoView({behavior:"smooth",block:"center"}), 80);
+    }
   }, [products]);
 
   useEffect(() => {
